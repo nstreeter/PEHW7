@@ -1,0 +1,174 @@
+import java.util.HashSet;
+
+HashSet<FlickeringStar> stars;
+HashSet<FlickeringStar2> stars2;
+//increased gravity
+//different shapes with mouse click
+//increased star lifetime
+void setup() {
+  size(500, 500);
+  background(0);
+  colorMode(HSB, 255);
+  smooth();
+  stars = new HashSet<FlickeringStar>();
+  stars2 = new HashSet<FlickeringStar2>();
+  mouseX = 250;
+  mouseY = 250;
+  addStars();
+  addStars2();
+}
+
+void draw() {
+  background(0);
+  HashSet<FlickeringStar> finishedStars = new HashSet<FlickeringStar>();
+  HashSet<FlickeringStar2> finishedStars2 = new HashSet<FlickeringStar2>();
+  for (FlickeringStar s : stars) {
+    s.draw();
+    s.step();
+    if (s.isFinished()) {
+      finishedStars.add(s);
+    }
+  }
+  for (FlickeringStar2 s2 : stars2) {
+    s2.draw();
+    s2.step();
+    if (s2.isFinished()) {
+      finishedStars2.add(s2);
+    }
+  }
+  stars.removeAll(finishedStars);
+  stars2.removeAll(finishedStars2);
+
+  if (mousePressed) {
+    addStars2();
+  }
+}
+
+void addStars() {
+  color c = color(random(255), 200, 255); 
+  for (int i = 0; i < 5; ++i) {
+    stars.add(new FlickeringStar(
+      mouseX + random(-5, 5), 
+      mouseY + random(-5, 5), 
+      random(-2.5, 2.5), 
+      random(-3.5, 1.5), 
+      14 + random(-6, 6), 
+      c));
+  }
+}
+
+void addStars2() {
+  color c = color(255, 200, 255); 
+  for (int i = 0; i < 5; ++i) {
+    stars2.add(new FlickeringStar2(
+      mouseX - random(-25, 25), 
+      mouseY - random(-25, 25), 
+      random(-7.5, 7.5), 
+      random(-6.5, 4.5), 
+      14 + random(-6, 6), 
+      c));
+  }
+}
+
+void mouseMoved() {
+  if (pow(pmouseX - mouseX, 2) + pow(pmouseY - mouseY, 2) >= 30) {
+    addStars();
+  }
+}
+
+class FlickeringStar {
+  float x, y, vx, vy, r;
+  color c;
+  float e; // 0..1
+
+  FlickeringStar(float x, float y, float vx, float vy, float r, color c) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.r = r;
+    this.c = c;
+  }
+
+  void step() {
+    x += vx;
+    y += vy;
+
+    vy += 0.2; // gravity
+    vx *= 1; // slow down
+    vy *= 1; // slow down
+
+    r -= 0.05 + 0.05 * min(r / 10, 1) + 0.15 * min(r / 5, 1);
+    if (r < 5 && e < 0.1) {
+      e = 0.1;
+    }
+  }
+
+  void draw() {
+    final float[] o = {1, 0, 0, 1, -1, 0, 0, -1};
+    stroke(c);
+    fill(c);
+    beginShape();
+    vertex(x+o[0]*r, y+o[1]*r);
+    bezierVertex(x+o[0]*r*e, y+o[1]*r*e, x+o[2]*r*e, y+o[3]*r*e, x+o[2]*r, y+o[3]*r);
+    bezierVertex(x+o[2]*r*e, y+o[3]*r*e, x+o[4]*r*e, y+o[5]*r*e, x+o[4]*r, y+o[5]*r);
+    bezierVertex(x+o[4]*r*e, y+o[5]*r*e, x+o[6]*r*e, y+o[7]*r*e, x+o[6]*r, y+o[7]*r);
+    bezierVertex(x+o[6]*r*e, y+o[7]*r*e, x+o[0]*r*e, y+o[1]*r*e, x+o[0]*r, y+o[1]*r);
+    endShape();
+  }
+
+  boolean isFinished() {
+    return r <= 0;
+  }
+}
+class FlickeringStar2 {
+  float x, y, vx, vy, r;
+  color c;
+  float e; // 0..1
+  float s;
+  FlickeringStar2(float x, float y, float vx, float vy, float r, color c) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.r = r;
+    this.c = c;
+  }
+
+  void step() {
+    x += vx;
+    y += vy;
+
+
+    vx *= .98; // slow down
+    vy *= .98; // slow down
+
+    r -= 0.01+0.04 * min(r / 1, 1) + 0.01 * min(r / 15, 1);
+    if (r < 5 && e < 0.05) {
+      e = 1.2;
+    }
+  }
+
+  void draw() {
+    final float[] o = {1, 0, 0, 1, -1, 0, 0, -1, 0, 1, 0, 1, 0, -1, 0, -1}; 
+    stroke(c);
+    fill(c);
+    beginShape();
+    vertex(x+o[0]*r, y+o[1]*r);
+    bezierVertex(x+o[0]*r*e, y+o[1]*r*e, x+o[2]*r*e, y+o[3]*r*e, x+o[2]*r, y+o[3]*r);
+    bezierVertex(x+o[2]*r*e, y+o[3]*r*e, x+o[4]*r*e, y+o[5]*r*e, x+o[4]*r, y+o[5]*r);
+    bezierVertex(x+o[4]*r*e, y+o[5]*r*e, x+o[6]*r*e, y+o[7]*r*e, x+o[6]*r, y+o[7]*r);
+    bezierVertex(x+o[6]*r*e, y+o[7]*r*e, x+o[0]*r*e, y+o[1]*r*e, x+o[0]*r, y+o[1]*r);
+
+   
+    bezierVertex(x+o[5]*r/e, y+o[4]*r/e, x+o[5]*r/e, y+o[4]*r/e, x+o[3]*r, y+o[2]*r);
+    bezierVertex(x+o[7]*r/e, y+o[6]*r/e, x+o[7]*r/e, y+o[6]*r/e, x+o[5]*r, y+o[4]*r);
+    bezierVertex(x+o[1]*r/e, y+o[0]*r/e, x+o[1]*r/e, y+o[0]*r/e, x+o[7]*r, y+o[6]*r);
+
+    endShape();
+  }
+
+  boolean isFinished() {
+    return r <= 0;
+  }
+}
